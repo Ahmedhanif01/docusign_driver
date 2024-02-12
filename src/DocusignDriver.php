@@ -3,9 +3,9 @@
 namespace AlNutile\DocusignDriver;
 
 use AlNutile\DocusignDriver\Response\Submitter;
-use AlNutile\DocusignDriver\Responses\ClientContract;
-use AlNutile\DocusignDriver\Responses\GetSubmissionResponse;
-use AlNutile\DocusignDriver\Responses\ListAllTemplatesResponse;
+use AlNutile\DocusignDriver\ClientContract;
+use AlNutile\DocusignDriver\Response\GetSubmissionResponse;
+use AlNutile\DocusignDriver\Response\ListAllTemplatesResponse;
 use AlNutile\ElectronicSignatures\Response\SubmissionResponse;
 use Firebase\JWT\JWT;
 use Illuminate\Support\Facades\Cache;
@@ -137,9 +137,8 @@ class DocusignDriver extends ClientContract
         $rsa_private_key = config('docusigndriver.rsa_private_key');
 
         $now = time();
-
+        
         $aud = str(config('docusigndriver.base_url'))->after('https://')->toString();
-
         $claim = [
             'iss' => $client_id,
             'sub' => $user_id,
@@ -148,9 +147,9 @@ class DocusignDriver extends ClientContract
             'exp' => $now + (int) $expires_in * 60,
             'scope' => $scope,
         ];
-
+        
         $jwt = JWT::encode($claim, $rsa_private_key, 'RS256');
-
+       
         return $jwt;
     }
 
@@ -171,14 +170,14 @@ class DocusignDriver extends ClientContract
             $jwtToken = $this->createJwtToken();
 
             $auth_url = config('docusigndriver.auth_host');
-
+            
             $response = Http::asForm()
                 ->withHeader('X-DocuSign-SDK', 'PHP')->post($auth_url, [
                     'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
                     'assertion' => $jwtToken,
                 ]);
-
             if ($response->successful()) {
+                
                 $data = $response->json();
                 Cache::put('docusign_access_token', $data['access_token']);
 
@@ -196,7 +195,8 @@ class DocusignDriver extends ClientContract
                         [
                             'scope' => 'impersonation+'.$this->defaultScope,
                             'client_id' => $client_id,
-                            'redirect_uri' => route('docusign.callback'),
+                            //'redirect_uri' => route('docusign.callback'),
+                            'redirect_uri' => config('docusigndriver.callback'),  
                         ]
                     );
                 } elseif ($response->status() === 401) {

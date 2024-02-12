@@ -1,6 +1,6 @@
 <?php
 
-namespace AlNutile\DocusignDriver\Responses;
+namespace AlNutile\DocusignDriver\Response;
 
 use AlNutile\DocusignDriver\Response\Submitter;
 use Spatie\LaravelData\Attributes\WithCast;
